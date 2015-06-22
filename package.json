@@ -1,0 +1,23 @@
+{
+  "name": "ioc-core",
+  "version": "1.0.0",
+  "description": "Simple IOC core component",
+  "main": "Core.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srobfr/ioc-core.git"
+  },
+  "keywords": [
+    "ioc",
+    "core"
+  ],
+  "author": "Simon Robert",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/srobfr/ioc-core/issues"
+  },
+  "homepage": "https://github.com/srobfr/ioc-core"
+}
