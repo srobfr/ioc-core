@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/srobfr/ioc-core/issues"
   },
-  "homepage": "https://github.com/srobfr/ioc-core"
+  "homepage": "https://github.com/srobfr/ioc-core",
+  "dependencies": {
+    "q": "^1.4.1",
+    "underscore": "^1.8.3"
+  }
 }
