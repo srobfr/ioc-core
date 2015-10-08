@@ -60,3 +60,11 @@ Or :
     }
 
     module.exports = MyComponent;
+
+## Events
+
+The core object emits events which can be used by other components :
+
+    core.eventsEmitter.once("initialized", function() {
+        // Here all the components are initialized.
+    });

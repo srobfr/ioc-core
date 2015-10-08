@@ -1,5 +1,7 @@
 var Q = require('q');
 var _ = require('underscore');
+var util = require('util');
+var events = require('events');
 
 /**
  * IOC Core
@@ -24,11 +26,18 @@ var Core = function Core(config) {
     that.config = config;
 
     /**
+     * Emetteur d'évènements
+     */
+    that.eventsEmitter = new events.EventEmitter();
+
+    /**
      * Retourne une promise accomplie lorsque l'initialisation est terminée.
      */
     that.init = function () {
         return loadComponents()
-            .then(function(){}, function(err) {
+            .then(function() {
+                that.eventsEmitter.emit("initialized");
+            }, function(err) {
                 console.error(err.stack);
                 throw err;
             });

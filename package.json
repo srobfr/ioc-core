@@ -1,6 +1,6 @@
 {
   "name": "ioc-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Simple IOC core component",
   "main": "Core.js",
   "scripts": {
