@@ -74,7 +74,10 @@ function Core() {
         // Une fois les dépendances résolues, on instancie le composant.
         var pComponent = pDependencies.then(function(dependenciesInstances) {
             var args = [null].concat(dependenciesInstances);
-            return new (componentClass.bind.apply(componentClass, args));
+            var instance = new (componentClass.bind.apply(componentClass, args));
+
+            if (typeof instance.init === "function") return instance.init();
+            return instance;
         });
 
         // On le stocke...
