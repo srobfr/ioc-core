@@ -1,64 +1,88 @@
-var Q = require('q');
-var _ = require('lodash');
+var _ = require("lodash");
+var Promise = require("bluebird");
 
 /**
- * IOC Core
- *
- * @param config Global configuration
- *
- * @constructor
+ * Core IOC.
  */
-var Core = function Core(config) {
+function Core() {
     var that = this;
 
     /**
-     * Already loaded components.
+     * Dictionnaire des composants.
      *
-     * @type Object
+     * @type {Object.<string,Promise.<Object>>}
      */
-    that.components = {core: that};
+    var components = {};
 
     /**
-     * Configuration
+     * Configuration globale.
+     *
+     * @type {Object.<string,Object>}
      */
-    that.config = config;
+    that.config;
 
     /**
-     * Charge tous les composants demandés avec leurs dépendances.
+     * Charge une liste de composants et retourne une promise.
      *
-     * @param names
+     * @param {(...string|Array.<string>)} names La liste du ou des composants à charger.
+     *
+     * @return {Promise.<Array.<Object>>}
      */
-    that.getComponents = function(names) {
-        var result = {};
-        var promises = _.map(names, function(name) {
-            if (that.components[name] !== undefined) {
-                return Q(that.components[name]);
-            }
+    that.load = function (names) {
+        names = (_.isArray(names) ? names : _.toArray(arguments));
 
-            // Il faut charger le composant.
-            var ComponentClass = require(that.config.ioc[name]);
-            var componentInstance = new ComponentClass(that);
-            var p = Q();
-            if (componentInstance.init !== undefined) {
-                p = p
-                    .then(function() {
-                        return componentInstance.init();
-                    });
-            }
-
-            p = p
-                .then(function() {
-                    that.components[name] = componentInstance;
-                    result[name] = componentInstance;
-                });
-            return p;
+        var result = [];
+        _.each(names, function (name) {
+            result.push(loadOneComponent(name));
         });
 
-        return Q.all(promises)
-            .then(function() {
-                return result;
-            });
+        if(result.length > 1) return Promise.all(result);
+        return _.first(result);
     };
-};
 
-module.exports = Core;
+    /**
+     * Charge un composant et retourne une promise.
+     *
+     * @param {string} name Le nom du composant à charger.
+     *
+     * @return {Promise.<Object>}
+     */
+    function loadOneComponent(name) {
+        // Si le composant est déjà chargé, on le retourne.
+        if (components[name] !== undefined) return components[name];
+
+        // Le composant n'est pas encore chargé.
+        // On tente de le trouver dans la conf IOC.
+        if (!that.config) throw new Error("La configuration est indéfinie.");
+        if (!that.config.ioc || !that.config.ioc[name]) throw new Error(`La configuration ioc est indéfinie pour le composant "${name}".`);
+
+        // Le composant a un chemin défini.
+        var componentPath = that.config.ioc[name];
+        var componentClass = require(componentPath);
+        var componentClassStr = componentClass.toString();
+
+        // Si le constructeur du composant a des arguments, on va tenter de les charger comme dépendances.
+        var m = componentClassStr.match(/^function +[\$a-zA-Z_][\$\w_]*\((.+?)\)[ \t\r\n]*\{/);
+        var pDependencies;
+        if (m) {
+            var constructorArgs = m[1].split(/[ \t\r\n]*,[ \t\r\n]*/);
+            pDependencies = that.load(constructorArgs);
+        } else {
+            pDependencies = Promise.resolve([]);
+        }
+
+        // Une fois les dépendances résolues, on instancie le composant.
+        var pComponent = pDependencies.then(function(dependenciesInstances) {
+            var args = [null].concat(dependenciesInstances);
+            return new (componentClass.bind.apply(componentClass, args));
+        });
+
+        // On le stocke...
+        components[name] = pComponent;
+
+        // Puis on le retourne.
+        return pComponent;
+    }
+}
+
+module.exports = new Core();
