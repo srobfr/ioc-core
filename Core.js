@@ -76,7 +76,11 @@ function Core() {
             var args = [null].concat(dependenciesInstances);
             var instance = new (componentClass.bind.apply(componentClass, args));
 
-            if (typeof instance.init === "function") return instance.init();
+            if (typeof instance.init === "function") {
+                return Promise.resolve(instance.init()).then(function() {
+                    return instance;
+                });
+            }
             return instance;
         });
 
