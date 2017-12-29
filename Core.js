@@ -63,6 +63,9 @@ function Core() {
 
         // Si le constructeur du composant a des arguments, on va tenter de les charger comme dépendances.
         var m = componentClassStr.match(/^function +[\$a-zA-Z_][\$\w_]*\((.+?)\)[ \t\r\n]*\{/);
+        // Syntaxe ES6 avec une méthode "constructor"
+        if (!m) m = componentClassStr.match(/[^\w]constructor *\((.+?)\)[ \t\r\n]*\{/);
+
         var pDependencies;
         if (m) {
             var constructorArgs = m[1].split(/[ \t\r\n]*,[ \t\r\n]*/);
